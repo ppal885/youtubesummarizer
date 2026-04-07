@@ -1,0 +1,34 @@
+.scrollRoot {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+}
+
+.scrollDefault {
+  max-height: min(52vh, 520px);
+}
+
+.scrollFull {
+  max-height: none;
+}
+
+.scrollMid {
+  max-height: min(46vh, 440px);
+}
+
+.scrollCompact {
+  max-height: min(38dvh, 340px);
+}
+
+.chatSectionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+
+.messagesColumn {
+  padding-bottom: 8px;
+}

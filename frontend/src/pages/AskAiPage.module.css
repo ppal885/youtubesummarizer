@@ -1,0 +1,10 @@
+.conversationShell {
+  display: flex;
+  flex-direction: column;
+  min-height: min(52dvh, 520px);
+}
+
+.conversationScrollHost {
+  display: flex;
+  flex-direction: column;
+}

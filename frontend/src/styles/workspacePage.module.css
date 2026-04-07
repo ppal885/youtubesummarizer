@@ -1,0 +1,77 @@
+/* Shared workspace / app-shell typography and layout helpers (Spectrum tokens). */
+
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+}
+
+.sectionLabelTight {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.dashboardStatLabel {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.dashboardStatValue {
+  font-size: 24px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.heroSubtitle {
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 560px;
+}
+
+.errorText {
+  color: var(--spectrum-negative-visual-color);
+}
+
+.videoAspect16x9 {
+  aspect-ratio: 16 / 9;
+}
+
+.emptyStateDashed {
+  border-style: dashed;
+}
+
+.keyMomentTime {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--spectrum-celery-900);
+}
+
+.bodyLoose {
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+.tipLabel {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tipBody {
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.codeInline {
+  font-size: 12px;
+}
+
+.sectionCard {
+  padding: var(--spectrum-alias-item-padding-m, 20px);
+  border-radius: var(--spectrum-alias-border-radius-regular, medium);
+  border-width: var(--spectrum-alias-border-size-thin, 1px);
+  border-style: solid;
+  border-color: var(--spectrum-gray-200);
+  background-color: var(--spectrum-gray-50);
+}

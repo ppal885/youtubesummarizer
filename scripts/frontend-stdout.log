@@ -1,0 +1,54 @@
+
+> frontend@0.0.0 dev
+> vite
+
+[2m9:25:42 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because vite config has changed
+
+  [32m[1mVITE[22m v8.0.3[39m  [2mready in [0m[1m682[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5174[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[2m12:35:59 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/LandingPage.tsx[22m
+[2m12:36:47 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/LandingPage.tsx[22m
+[2m12:36:57 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/LandingPage.tsx[22m
+[2m12:37:04 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/LandingPage.tsx[22m
+[2m12:37:15 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/LandingPage.tsx[22m
+[2m12:37:27 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/LandingPage.tsx[22m
+[2m12:37:36 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/LandingPage.tsx[22m
+[2m12:37:48 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/LandingPage.tsx[22m
+[2m12:37:58 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/LandingPage.tsx[22m
+[2m12:38:12 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/LandingPage.tsx[22m
+[2m12:38:22 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/LandingPage.tsx[22m
+[2m12:38:37 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/LandingPage.tsx[22m
+[2m12:50:11 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/ChatMessageList.tsx[22m
+[2m12:50:13 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/ChatMessageList.tsx[22m
+[2m12:50:31 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/ChatMessageList.tsx[22m
+[2m12:50:41 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/ChatMessageList.tsx[22m
+[2m12:51:06 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/DashboardPage.tsx[22m
+[2m12:51:08 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/DashboardPage.tsx[22m
+[2m12:51:22 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/DashboardPage.tsx[22m
+[2m12:51:38 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/DashboardPage.tsx[22m
+[2m12:51:53 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/DashboardPage.tsx[22m
+[2m12:52:14 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/DashboardPage.tsx[22m
+[2m12:52:25 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/DashboardPage.tsx[22m
+[2m12:52:48 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/SummarizePage.tsx[22m
+[2m12:52:53 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/SummarizePage.tsx[22m
+[2m12:53:03 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/SummarizePage.tsx[22m
+[2m12:53:13 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/SummarizePage.tsx[22m
+[2m12:53:23 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/SummarizePage.tsx[22m
+[2m12:53:33 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/SummarizePage.tsx[22m
+[2m12:53:44 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/SummarizePage.tsx[22m
+[2m12:53:57 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/SummarizePage.tsx[22m
+[2m12:54:17 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/SummarizePage.tsx[22m
+[2m12:54:27 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/SummarizePage.tsx[22m
+[2m12:54:38 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/SummarizePage.tsx[22m
+[2m12:54:57 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/SummarizePage.tsx[22m
+[2m12:59:50 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/AskAiPage.tsx[22m
+[2m12:59:52 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/AskAiPage.tsx[22m
+[2m1:00:00 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/AskAiPage.tsx[22m
+[2m1:00:09 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/AskAiPage.tsx[22m
+[2m1:00:20 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/AskAiPage.tsx[22m
+[2m1:00:29 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/AskAiPage.tsx[22m
+[2m1:00:39 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/AskAiPage.tsx[22m
+[2m1:00:54 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/AskAiPage.tsx[22m
+[2m1:01:24 am[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/AskAiPage.tsx[22m
