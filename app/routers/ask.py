@@ -22,6 +22,7 @@ from app.exceptions import (
 from app.models.ask_stream_events import AskStreamErrorEvent
 from app.models.request_models import AskRequest
 from app.models.response_models import AskResponse
+from app.observability.request_tracing import request_trace_stage
 from app.routers.error_mapping import transcript_fetch_status_code
 from app.services.qa_service import QAService, build_default_qa_service
 from app.services.qa_streaming import iter_ask_sse_events
@@ -67,8 +68,9 @@ def build_ask_sse_streaming_response(body: AskRequest, db: Session) -> Streaming
 
     async def event_gen():
         try:
-            async for line in iter_ask_sse_events(body, db, settings=settings):
-                yield line
+            with request_trace_stage("ask.sse_stream"):
+                async for line in iter_ask_sse_events(body, db, settings=settings):
+                    yield line
         except _STREAM_SETUP_ERRORS as exc:
             yield _sse_error_line(str(exc))
         except SQLAlchemyError as exc:
@@ -123,7 +125,8 @@ async def ask_transcript_question(
         return build_ask_sse_streaming_response(body, db)
 
     try:
-        return await service.ask(body, db)
+        with request_trace_stage("ask.sync_invoke"):
+            return await service.ask(body, db)
     except InvalidYouTubeUrlError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except TranscriptFetchError as exc:

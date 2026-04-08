@@ -2,6 +2,7 @@
 
 import pytest
 from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
 from fastapi.testclient import TestClient
 
 from app.middleware.request_tracing import RequestTracingMiddleware
@@ -68,3 +69,37 @@ def test_parse_incoming_request_id_rejects_garbage() -> None:
 def test_request_trace_stage_noop_without_middleware() -> None:
     with request_trace_stage("orphan"):
         assert get_request_trace() is None
+
+
+def test_streaming_response_logs_complete_after_body(monkeypatch: pytest.MonkeyPatch) -> None:
+    import app.observability.request_tracing as rt
+
+    payloads: list[dict] = []
+
+    def capture(event: str, **fields: object) -> None:
+        payloads.append({"event": event, **fields})
+
+    monkeypatch.setattr(rt, "log_request_trace_event", capture)
+
+    app = FastAPI()
+
+    @app.get("/stream")
+    async def stream():
+        async def gen():
+            yield b"hello"
+
+        return StreamingResponse(gen(), media_type="text/plain")
+
+    app.add_middleware(RequestTracingMiddleware)
+    client = TestClient(app)
+    r = client.get("/stream")
+    assert r.status_code == 200
+    assert r.content == b"hello"
+
+    completes = [p for p in payloads if p["event"] == "http.request.complete"]
+    assert len(completes) == 1
+    start = next(p for p in payloads if p["event"] == "http.request.start")
+    complete = completes[0]
+    assert start["request_id"] == complete["request_id"]
+    assert complete["status_code"] == 200
+    assert complete["total_duration_ms"] >= 0

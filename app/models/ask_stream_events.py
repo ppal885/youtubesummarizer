@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from app.models.response_models import AskCitationSource
+from app.models.response_models import AskCitationSource, PipelinePerformanceMs
 
 
 class AskStreamDeltaEvent(BaseModel):
@@ -22,6 +22,10 @@ class AskStreamDoneEvent(BaseModel):
     sources: list[AskCitationSource] = Field(default_factory=list)
     confidence: float = Field(..., ge=0.0, le=1.0)
     confidence_score: float = Field(..., ge=0.0, le=1.0)
+    performance: PipelinePerformanceMs | None = Field(
+        default=None,
+        description="Pipeline timings when the server collected them.",
+    )
 
 
 class AskStreamErrorEvent(BaseModel):

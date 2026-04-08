@@ -89,11 +89,18 @@ class Settings(BaseSettings):
         description="Must match pgvector column size (1536 for text-embedding-3-small). Used by mock provider.",
     )
     embedding_batch_size: int = Field(
-        default=64,
+        default=128,
         ge=1,
-        le=512,
+        le=2048,
         alias="EMBEDDING_BATCH_SIZE",
         description="Maximum number of texts to send in one embedding provider call.",
+    )
+    embedding_max_chars_per_batch: int = Field(
+        default=0,
+        ge=0,
+        alias="EMBEDDING_MAX_CHARS_PER_BATCH",
+        description="If > 0, also split batches when cumulative input character length would exceed "
+        "this value (provider-agnostic; 0 = item-count batching only).",
     )
     retrieval_hybrid_alpha: float = Field(
         default=0.65,

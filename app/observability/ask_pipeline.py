@@ -37,12 +37,17 @@ def _scrub(value: Any) -> Any:
 
 
 def log_ask_line(event: str, **fields: Any) -> None:
+    from app.observability.request_tracing import get_request_trace
+
     configure_ask_pipeline_logging()
     payload: dict[str, Any] = {
         "ts": _now_iso(),
         "component": "ask",
         "event": event,
     }
+    active = get_request_trace()
+    if active is not None and "request_id" not in fields:
+        payload["request_id"] = active.request_id
     for key, value in fields.items():
         if value is None:
             continue

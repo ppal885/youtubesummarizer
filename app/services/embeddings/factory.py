@@ -22,4 +22,5 @@ def get_embedding_service(settings: Settings) -> EmbeddingService:
     return EmbeddingService(
         get_embedding_provider(settings),
         batch_size=settings.embedding_batch_size,
+        max_chars_per_batch=settings.embedding_max_chars_per_batch,
     )

@@ -6,6 +6,27 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.models.request_models import LearningLevel
 
 
+class PipelinePerformanceMs(BaseModel):
+    """
+    Server-side pipeline timings in milliseconds (two decimal places recommended).
+
+    ``transcript_fetch_ms`` — caption fetch + merge (summarize: excludes title fetch; counts toward total only).
+
+    ``chunking_ms`` — transcript chunking only.
+
+    ``llm_ms`` — LLM-bound work (summarize: from parallel chunk summaries through chapters/developer digest;
+    ask: query understanding, optional context-compression LLM, answer composer stream; excludes embeddings
+    and lexical verification).
+
+    ``total_ms`` — wall time for the full request handler; may exceed the sum of the three segments.
+    """
+
+    transcript_fetch_ms: float = Field(..., ge=0.0, description="Transcript fetch + merge (ms).")
+    chunking_ms: float = Field(..., ge=0.0, description="Chunking step (ms).")
+    llm_ms: float = Field(..., ge=0.0, description="Aggregated LLM calls (ms).")
+    total_ms: float = Field(..., ge=0.0, description="End-to-end wall time (ms).")
+
+
 class KeyMoment(BaseModel):
     time: str = Field(..., description="Formatted timestamp (mm:ss or hh:mm:ss)")
     note: str = Field(..., min_length=0)
@@ -81,6 +102,10 @@ class FinalSummary(BaseModel):
     developer_digest: DeveloperStudyDigest | None = Field(
         default=None,
         description="Structured developer-oriented notes when summarization used developer_mode.",
+    )
+    performance: PipelinePerformanceMs | None = Field(
+        default=None,
+        description="Optional server pipeline timings for this summary.",
     )
 
 
@@ -230,6 +255,10 @@ class AskResponse(BaseModel):
         ge=0.0,
         le=1.0,
         description="Raw overlap score between the answer and retrieved transcript chunks.",
+    )
+    performance: PipelinePerformanceMs | None = Field(
+        default=None,
+        description="Optional server pipeline timings for this answer.",
     )
 
 

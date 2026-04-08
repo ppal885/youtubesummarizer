@@ -2,7 +2,7 @@
 Multi-agent copilot building blocks for transcript Q&A.
 
 Agents are plain services with explicit :mod:`app.copilot.contracts` DTOs; the LangGraph
-workflow in :mod:`app.workflows.ask_graph` orchestrates them.
+workflow in :mod:`app.workflows.ask_graph` wires stages from :mod:`app.workflows.ask_pipeline`.
 """
 
 from app.copilot.answer_composer import AnswerComposerAgent

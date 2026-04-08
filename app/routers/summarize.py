@@ -16,6 +16,7 @@ from app.models.response_models import (
     SummaryJobAcceptedResponse,
     SummaryJobStatusResponse,
 )
+from app.observability.request_tracing import request_trace_stage
 from app.observability.summarize_pipeline import log_summarize_failure, log_summarize_line
 from app.services.summary_job_service import SummaryJobService, build_default_summary_job_service
 from app.services.youtube_service import extract_video_id
@@ -44,7 +45,8 @@ def summarize(
 ) -> SummaryJobAcceptedResponse:
     trace_id = str(uuid.uuid4())
     t0 = time.perf_counter()
-    video_id = _video_id_hint(body)
+    with request_trace_stage("summarize.parse_video_id"):
+        video_id = _video_id_hint(body)
     if video_id is None:
         detail = "Could not parse a valid YouTube video id from the provided URL."
         log_summarize_failure(
@@ -57,7 +59,8 @@ def summarize(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=detail)
 
     try:
-        response = job_service.create_job(db, body, trace_id=trace_id, video_id=video_id)
+        with request_trace_stage("summarize.create_job"):
+            response = job_service.create_job(db, body, trace_id=trace_id, video_id=video_id)
     except SQLAlchemyError as exc:
         db.rollback()
         log_summarize_failure(
@@ -90,7 +93,8 @@ def get_summary_status(
     job_service: Annotated[SummaryJobService, Depends(get_summary_job_service)],
     db: Annotated[Session, Depends(get_db)],
 ) -> SummaryJobStatusResponse:
-    status_response = job_service.get_status(db, job_id)
+    with request_trace_stage("summarize.status_lookup"):
+        status_response = job_service.get_status(db, job_id)
     if status_response is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Summary job not found.")
     return status_response
@@ -101,5 +105,6 @@ def list_summaries(
     db: Annotated[Session, Depends(get_db)],
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> list[StoredSummaryListItem]:
-    rows = list_recent_summaries(db, limit)
+    with request_trace_stage("summarize.list_recent"):
+        rows = list_recent_summaries(db, limit)
     return [StoredSummaryListItem.model_validate(r) for r in rows]

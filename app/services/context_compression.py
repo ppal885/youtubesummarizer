@@ -7,6 +7,7 @@ Heuristic mode merges ranked hits by contiguous groups; LLM mode uses one struct
 from __future__ import annotations
 
 import logging
+import time
 from typing import TYPE_CHECKING
 
 from app.config import Settings
@@ -185,28 +186,36 @@ async def compress_ranked_hits(
     *,
     settings: Settings,
     llm: LLMService,
-) -> tuple[list[TranscriptChunkPassage], list[RetrievalHit]]:
+) -> tuple[list[TranscriptChunkPassage], list[RetrievalHit], float]:
     """
     Produce answer-context passages and parallel synthetic citation hits.
 
     When ``len(hits) <= target``, return raw passages and hits without merge.
+
+    Third tuple element is milliseconds spent in the LLM compression call when used; otherwise ``0.0``.
     """
     target = settings.qa_context_compress_to
     if not hits:
-        return [], []
+        return [], [], 0.0
     if len(hits) <= target:
-        return [hit.passage for hit in hits], list(hits)
+        return [hit.passage for hit in hits], list(hits), 0.0
 
+    llm_compress_ms = 0.0
     if settings.qa_context_compression == "llm":
+        t_llm = time.perf_counter()
         try:
             payload = await llm.compress_qa_retrieval_context(question, hits, target)
+            llm_compress_ms = round((time.perf_counter() - t_llm) * 1000, 2)
             mapped = map_llm_payload_to_context(payload, hits, target)
             if mapped is not None:
-                return mapped
+                passages, synthetic_hits = mapped
+                return passages, synthetic_hits, llm_compress_ms
         except Exception as exc:  # noqa: BLE001
+            llm_compress_ms = round((time.perf_counter() - t_llm) * 1000, 2)
             _LOG.warning("LLM context compression failed; falling back to heuristic: %s", exc)
 
-    return compress_heuristic(hits, target)
+    passages, synthetic_hits = compress_heuristic(hits, target)
+    return passages, synthetic_hits, llm_compress_ms
 
 
 def slice_citation_hits(synth_hits: list[RetrievalHit], limit: int = _CITATION_SLICE) -> list[RetrievalHit]:

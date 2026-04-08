@@ -17,7 +17,9 @@ class EmbeddingProvider(ABC):
     @abstractmethod
     def embed(self, texts: list[str]) -> list[list[float]]:
         """
-        Embed each non-empty text; empty strings may yield zero vectors or raise.
+        Embed a batch of texts in a single provider call when possible.
 
-        Returns one vector per input, same length as ``texts``.
+        Implementations receive slices produced by :class:`~app.services.embeddings.service.EmbeddingService`
+        (count- and optionally size-limited batches). Each call must return one vector per input,
+        in the same order as ``texts``.
         """

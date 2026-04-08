@@ -40,12 +40,17 @@ def _scrub(value: Any) -> Any:
 
 def log_summarize_line(event: str, **fields: Any) -> None:
     """Emit a single JSON object on one line (readable in terminals and log files)."""
+    from app.observability.request_tracing import get_request_trace
+
     configure_summarize_pipeline_logging()
     payload: dict[str, Any] = {
         "ts": _now_iso(),
         "component": "summarize",
         "event": event,
     }
+    active = get_request_trace()
+    if active is not None and "request_id" not in fields:
+        payload["request_id"] = active.request_id
     for k, v in fields.items():
         if v is None:
             continue

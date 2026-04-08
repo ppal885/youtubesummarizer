@@ -1,8 +1,22 @@
-"""Transcript chunk helpers shared by retrieval (pgvector path uses :class:`TranscriptChunkRepository`)."""
+"""Transcript chunk helpers shared by retrieval (pgvector path uses :class:`TranscriptChunkRepository`).
 
+Chunk embeddings for semantic retrieval are persisted per ``(video_id, language)`` via
+:class:`~app.services.embedding_store.EmbeddingStore`: existing DB rows that match the
+current chunk texts skip the embedding API; an in-process LRU fills gaps when the DB was
+cleared in the same process.
+"""
+
+from __future__ import annotations
+
+from sqlalchemy.orm import Session
+
+from app.config import Settings
 from app.models.qa_models import TranscriptChunkPassage
 from app.models.transcript_models import TranscriptTextChunk
 from app.models.retrieval_models import TranscriptChunk
+from app.repositories.transcript_chunk_repository import TranscriptChunkRepository
+from app.services.embedding_store import get_embedding_store
+from app.services.embeddings.service import EmbeddingService
 
 
 def passages_to_transcript_chunks(
@@ -29,6 +43,29 @@ def passages_to_transcript_chunks(
             )
         )
     return out
+
+
+def ensure_transcript_chunk_embeddings(
+    db: Session,
+    repo: TranscriptChunkRepository,
+    embedding_service: EmbeddingService,
+    settings: Settings,
+    video_id: str,
+    language: str,
+    chunks: list[TranscriptTextChunk],
+    end_times: list[float | None],
+) -> None:
+    """Ensure ``transcript_chunks`` rows carry embeddings for this slice (cache / DB / compute)."""
+    get_embedding_store().ensure_persisted(
+        db,
+        repo,
+        embedding_service,
+        settings,
+        video_id,
+        language,
+        chunks,
+        end_times,
+    )
 
 
 def chunk_end_times_from_items(

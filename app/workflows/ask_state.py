@@ -85,6 +85,16 @@ class CopilotAskState(BaseModel):
 
     errors: Annotated[list[str], operator.add] = Field(default_factory=list)
 
+    perf_transcript_fetch_ms: Annotated[float, operator.add] = Field(
+        0.0,
+        description="Accumulated transcript fetch + clean/merge time (ms).",
+    )
+    perf_chunking_ms: float = Field(0.0, description="Transcript chunking time (ms).")
+    perf_llm_ms: Annotated[float, operator.add] = Field(
+        0.0,
+        description="Accumulated LLM time for query understanding, compression, compose (ms).",
+    )
+
     final_response: AskResponse | None = Field(
         default=None,
         description="API payload; set in ``format_response``.",

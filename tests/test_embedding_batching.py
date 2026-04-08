@@ -58,3 +58,48 @@ def test_get_embedding_service_uses_configured_batch_size(monkeypatch: pytest.Mo
 
     assert provider.calls == [["a", "b", "c"], ["d"]]
     assert vectors == [[97.0], [98.0], [99.0], [100.0]]
+
+
+def test_embedding_service_splits_batches_by_char_budget() -> None:
+    provider = _RecordingEmbeddingProvider()
+    service = EmbeddingService(provider, batch_size=10, max_chars_per_batch=5)
+
+    service.embed(["ab", "cd", "efgh"])
+
+    assert provider.calls == [["ab", "cd"], ["efgh"]]
+
+
+def test_embedding_service_sends_oversized_string_in_its_own_batch() -> None:
+    provider = _RecordingEmbeddingProvider()
+    service = EmbeddingService(provider, batch_size=10, max_chars_per_batch=5)
+
+    service.embed(["abcdef", "x"])
+
+    assert provider.calls == [["abcdef"], ["x"]]
+
+
+def test_embed_paired_preserves_text_vector_mapping() -> None:
+    provider = _RecordingEmbeddingProvider()
+    service = EmbeddingService(provider, batch_size=2)
+
+    pairs = service.embed_paired(["chunk-1", "chunk-2", "chunk-3"])
+
+    assert pairs == [("chunk-1", [1.0]), ("chunk-2", [2.0]), ("chunk-3", [3.0])]
+
+
+def test_get_embedding_service_passes_max_chars_per_batch(monkeypatch: pytest.MonkeyPatch) -> None:
+    provider = _RecordingEmbeddingProvider()
+    monkeypatch.setattr(
+        "app.services.embeddings.factory.get_embedding_provider",
+        lambda settings: provider,
+    )
+    service = get_embedding_service(
+        Settings(
+            embedding_provider="mock",
+            embedding_batch_size=10,
+            embedding_max_chars_per_batch=3,
+        )
+    )
+    service.embed(["a", "bc", "d"])
+
+    assert provider.calls == [["a", "bc"], ["d"]]

@@ -8,6 +8,7 @@ from app.models.response_models import (
     CompareVideosResponse,
     DeveloperStudyDigest,
     FinalSummary,
+    PipelinePerformanceMs,
     FlashcardItem,
     FlashcardsResponse,
     GlossaryTerm,
@@ -48,11 +49,13 @@ def normalize_ask_source(source: AskCitationSource) -> AskCitationSource:
 
 def normalize_ask_response(response: AskResponse) -> AskResponse:
     sources = _dedupe_ask_sources(response.sources)
+    perf: PipelinePerformanceMs | None = response.performance
     return AskResponse(
         answer=clean_text(response.answer),
         sources=sources,
         confidence=float(response.confidence),
         confidence_score=float(response.confidence_score),
+        performance=perf,
     )
 
 
@@ -69,6 +72,7 @@ def normalize_final_summary(result: FinalSummary) -> FinalSummary:
         suggested_questions=dedupe_text_items(result.suggested_questions),
         chapters=_normalize_video_chapters(result.chapters),
         developer_digest=_normalize_developer_digest(result.developer_digest),
+        performance=result.performance,
     )
 
 

@@ -23,7 +23,8 @@ async def test_demo_summary_skips_network_and_llm() -> None:
     svc = SummaryService(settings, get_llm_service(settings))
     body = SummarizeRequest(url=DEMO_VIDEO_URL, summary_type="brief", language="en")
     out = await svc.summarize_from_url(body, trace_id="test-demo-sum")
-    assert out.model_dump() == demo_final_summary().model_dump()
+    assert out.model_dump(exclude={"performance"}) == demo_final_summary().model_dump(exclude={"performance"})
+    assert out.performance is not None and out.performance.llm_ms == 0.0
 
 
 @pytest.mark.asyncio
@@ -38,7 +39,8 @@ async def test_demo_developer_mode_adds_digest_without_llm() -> None:
     )
     out = await svc.summarize_from_url(body, trace_id="test-demo-dev")
     expected = demo_final_summary().model_copy(update={"developer_digest": demo_developer_digest()})
-    assert out.model_dump() == expected.model_dump()
+    assert out.model_dump(exclude={"performance"}) == expected.model_dump(exclude={"performance"})
+    assert out.performance is not None
 
 
 @pytest.mark.asyncio

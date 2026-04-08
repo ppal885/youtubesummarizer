@@ -11,7 +11,13 @@ from app.demo.catalog import (
 )
 from app.exceptions import InvalidYouTubeUrlError, LLMInvocationError, TranscriptFetchError
 from app.models.request_models import SummarizeRequest, SummaryType
-from app.models.response_models import DeveloperStudyDigest, FinalSummary, KeyMoment, VideoChapter
+from app.models.response_models import (
+    DeveloperStudyDigest,
+    FinalSummary,
+    KeyMoment,
+    PipelinePerformanceMs,
+    VideoChapter,
+)
 from app.observability.llm_request_usage import llm_request_usage_context
 from app.models.transcript_models import TranscriptTextChunk
 from app.observability.request_context import trace_context
@@ -29,6 +35,10 @@ from app.utils.output_normalizer import normalize_final_summary
 
 _MAX_TRANSCRIPT_CHARS_FOR_SUGGESTIONS = 14_000
 _MAX_LABELED_TRANSCRIPT_CHARS_FOR_DEVELOPER = 18_000
+
+
+def _ms(start: float, end: float) -> float:
+    return round((end - start) * 1000, 2)
 
 
 class SummaryService:
@@ -73,6 +83,13 @@ class SummaryService:
                 )
 
             if is_demo_video_for_settings(self._settings, video_id):
+                total_demo = _ms(t0, time.perf_counter())
+                demo_perf = PipelinePerformanceMs(
+                    transcript_fetch_ms=0.0,
+                    chunking_ms=0.0,
+                    llm_ms=0.0,
+                    total_ms=total_demo,
+                )
                 log_summarize_line(
                     "summarize.pipeline.demo_preloaded",
                     trace_id=trace_id,
@@ -81,10 +98,22 @@ class SummaryService:
                     language=language,
                     llm_provider=llm_provider,
                     llm_model=llm_model,
-                    elapsed_ms=round((time.perf_counter() - t0) * 1000, 2),
+                    elapsed_ms=total_demo,
+                )
+                log_summarize_line(
+                    "summarize.pipeline.metrics",
+                    trace_id=trace_id,
+                    video_id=DEMO_VIDEO_ID,
+                    transcript_fetch_ms=demo_perf.transcript_fetch_ms,
+                    chunking_ms=demo_perf.chunking_ms,
+                    llm_ms=demo_perf.llm_ms,
+                    total_ms=demo_perf.total_ms,
+                    demo_mode=True,
                 )
                 base = normalize_final_summary(
-                    demo_final_summary().model_copy(update={"learning_level": request.learning_level})
+                    demo_final_summary().model_copy(
+                        update={"learning_level": request.learning_level, "performance": demo_perf}
+                    )
                 )
                 if developer_mode:
                     return normalize_final_summary(
@@ -94,6 +123,7 @@ class SummaryService:
 
             learning_level = request.learning_level
             title = fetch_video_title(url)
+            t_tf0 = time.perf_counter()
             items = fetch_transcript_items(video_id, language)
             merged_text = merge_transcript_text(items)
             if not merged_text.strip():
@@ -101,24 +131,27 @@ class SummaryService:
 
             transcript_length = len(merged_text)
             t_after_transcript = time.perf_counter()
+            transcript_fetch_ms = _ms(t_tf0, t_after_transcript)
             log_summarize_line(
                 "summarize.pipeline.transcript_fetched",
                 trace_id=trace_id,
                 video_id=video_id,
                 transcript_length=transcript_length,
-                elapsed_ms=round((t_after_transcript - t0) * 1000, 2),
+                elapsed_ms=_ms(t0, t_after_transcript),
             )
 
+            t_ch0 = time.perf_counter()
             text_chunks: list[TranscriptTextChunk] = chunk_transcript_items(items, self._settings)
             chunk_count = len(text_chunks)
             t_after_chunk = time.perf_counter()
+            chunking_ms = _ms(t_ch0, t_after_chunk)
             log_summarize_line(
                 "summarize.pipeline.chunked",
                 trace_id=trace_id,
                 video_id=video_id,
                 transcript_length=transcript_length,
                 chunk_count=chunk_count,
-                elapsed_ms=round((t_after_chunk - t0) * 1000, 2),
+                elapsed_ms=_ms(t0, t_after_chunk),
             )
 
             cached = self._cache.get(video_id, summary_type, learning_level, developer_mode)
@@ -130,7 +163,7 @@ class SummaryService:
                     summary_type=summary_type,
                     transcript_length=transcript_length,
                     chunk_count=chunk_count,
-                    elapsed_ms=round((time.perf_counter() - t0) * 1000, 2),
+                    elapsed_ms=_ms(t0, time.perf_counter()),
                 )
                 key_moments = self._build_key_moments(text_chunks)
                 chapters = await self._safe_chapters(text_chunks, cached_chapters=cached.chapters)
@@ -140,19 +173,37 @@ class SummaryService:
                         dev_digest = DeveloperStudyDigest.model_validate(cached.developer_digest)
                     except (ValueError, TypeError):
                         dev_digest = None
+                t_cache_done = time.perf_counter()
+                cache_perf = PipelinePerformanceMs(
+                    transcript_fetch_ms=transcript_fetch_ms,
+                    chunking_ms=chunking_ms,
+                    llm_ms=0.0,
+                    total_ms=_ms(t0, t_cache_done),
+                )
+                log_summarize_line(
+                    "summarize.pipeline.metrics",
+                    trace_id=trace_id,
+                    video_id=video_id,
+                    transcript_fetch_ms=cache_perf.transcript_fetch_ms,
+                    chunking_ms=cache_perf.chunking_ms,
+                    llm_ms=cache_perf.llm_ms,
+                    total_ms=cache_perf.total_ms,
+                    cache_hit=True,
+                )
                 return normalize_final_summary(
                     FinalSummary(
-                    video_id=video_id,
-                    title=title,
-                    summary=cached.summary,
-                    bullets=list(cached.bullets),
-                    key_moments=key_moments,
-                    transcript_length=transcript_length,
-                    chunks_processed=chunk_count,
-                    learning_level=learning_level,
-                    suggested_questions=list(cached.suggested_questions),
-                    chapters=chapters,
-                    developer_digest=dev_digest,
+                        video_id=video_id,
+                        title=title,
+                        summary=cached.summary,
+                        bullets=list(cached.bullets),
+                        key_moments=key_moments,
+                        transcript_length=transcript_length,
+                        chunks_processed=chunk_count,
+                        learning_level=learning_level,
+                        suggested_questions=list(cached.suggested_questions),
+                        chapters=chapters,
+                        developer_digest=dev_digest,
+                        performance=cache_perf,
                     )
                 )
 
@@ -175,8 +226,8 @@ class SummaryService:
                     :_MAX_TRANSCRIPT_CHARS_FOR_SUGGESTIONS
                 ]
             suggested_questions = await self._llm.generate_suggested_questions(transcript_for_questions)
-            t_after_llm = time.perf_counter()
-            summarization_ms = round((t_after_llm - t_llm_start) * 1000, 2)
+            t_after_core_llm = time.perf_counter()
+            summarization_ms = _ms(t_llm_start, t_after_core_llm)
             log_summarize_line(
                 "summarize.pipeline.summarization_complete",
                 trace_id=trace_id,
@@ -186,26 +237,31 @@ class SummaryService:
                 summarization_ms=summarization_ms,
                 llm_provider=llm_provider,
                 llm_model=llm_model,
-                elapsed_ms=round((t_after_llm - t0) * 1000, 2),
+                elapsed_ms=_ms(t0, t_after_core_llm),
             )
 
             key_moments = self._build_key_moments(text_chunks)
             chapters = await self._safe_chapters(text_chunks, cached_chapters=())
             dev_digest = await self._developer_digest(text_chunks, developer_mode=developer_mode)
+            t_after_llm = time.perf_counter()
+            llm_ms = _ms(t_llm_start, t_after_llm)
 
-            result = normalize_final_summary(FinalSummary(
-                video_id=video_id,
-                title=title,
-                summary=final.summary,
-                bullets=final.bullets,
-                key_moments=key_moments,
-                transcript_length=transcript_length,
-                chunks_processed=chunk_count,
-                learning_level=learning_level,
-                suggested_questions=suggested_questions,
-                chapters=chapters,
-                developer_digest=dev_digest if developer_mode else None,
-            ))
+            result = normalize_final_summary(
+                FinalSummary(
+                    video_id=video_id,
+                    title=title,
+                    summary=final.summary,
+                    bullets=final.bullets,
+                    key_moments=key_moments,
+                    transcript_length=transcript_length,
+                    chunks_processed=chunk_count,
+                    learning_level=learning_level,
+                    suggested_questions=suggested_questions,
+                    chapters=chapters,
+                    developer_digest=dev_digest if developer_mode else None,
+                    performance=None,
+                )
+            )
 
             digest_json: dict[str, Any] | None = None
             if result.developer_digest is not None:
@@ -224,7 +280,23 @@ class SummaryService:
                     developer_digest=digest_json,
                 ),
             )
-            return result
+            total_ms = _ms(t0, time.perf_counter())
+            full_perf = PipelinePerformanceMs(
+                transcript_fetch_ms=transcript_fetch_ms,
+                chunking_ms=chunking_ms,
+                llm_ms=llm_ms,
+                total_ms=total_ms,
+            )
+            log_summarize_line(
+                "summarize.pipeline.metrics",
+                trace_id=trace_id,
+                video_id=video_id,
+                transcript_fetch_ms=full_perf.transcript_fetch_ms,
+                chunking_ms=full_perf.chunking_ms,
+                llm_ms=full_perf.llm_ms,
+                total_ms=full_perf.total_ms,
+            )
+            return result.model_copy(update={"performance": full_perf})
 
     async def _developer_digest(
         self,

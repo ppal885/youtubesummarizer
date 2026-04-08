@@ -7,7 +7,7 @@ from app.config import Settings
 from app.demo.catalog import demo_ask_response, is_demo_video_for_settings
 from app.exceptions import BackendWorkflowError
 from app.models.request_models import AskRequest
-from app.models.response_models import AskResponse
+from app.models.response_models import AskResponse, PipelinePerformanceMs
 from app.observability.ask_pipeline import log_ask_line
 from app.observability.llm_request_usage import llm_request_usage_context
 from app.observability.request_context import trace_context
@@ -55,6 +55,13 @@ class QAService:
 
             if is_demo_video_for_settings(self._settings, video_id):
                 response = demo_ask_response(request.question)
+                total_ms = round((time.perf_counter() - started) * 1000, 2)
+                demo_perf = PipelinePerformanceMs(
+                    transcript_fetch_ms=0.0,
+                    chunking_ms=0.0,
+                    llm_ms=0.0,
+                    total_ms=total_ms,
+                )
                 log_ask_line(
                     "ask.pipeline.complete",
                     trace_id=trace_id,
@@ -62,10 +69,20 @@ class QAService:
                     confidence=response.confidence,
                     confidence_score=response.confidence_score,
                     sources_count=len(response.sources),
-                    elapsed_ms=round((time.perf_counter() - started) * 1000, 2),
+                    elapsed_ms=total_ms,
                     demo_mode=True,
                 )
-                return response
+                log_ask_line(
+                    "ask.pipeline.metrics",
+                    trace_id=trace_id,
+                    video_id=video_id,
+                    transcript_fetch_ms=demo_perf.transcript_fetch_ms,
+                    chunking_ms=demo_perf.chunking_ms,
+                    llm_ms=demo_perf.llm_ms,
+                    total_ms=demo_perf.total_ms,
+                    demo_mode=True,
+                )
+                return response.model_copy(update={"performance": demo_perf})
 
             deps = AskGraphDeps(
                 settings=self._settings,

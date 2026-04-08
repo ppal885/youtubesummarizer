@@ -1,4 +1,22 @@
-"""HTTP request tracing: request_id, per-stage durations, total latency (structured JSON logs)."""
+"""HTTP request tracing: request_id, per-stage durations, total latency (structured JSON logs).
+
+**Middleware** (``RequestTracingMiddleware``): assigns ``X-Request-ID`` (or honors inbound
+``X-Request-ID`` / ``X-Correlation-ID``), binds ``RequestTrace`` for the request, sets
+``trace_context`` to the same id, and logs:
+
+- ``http.request.start`` — ``request_id``, ``method``, ``path``, ``client_ip``, ``start_ts``
+- ``http.request.complete`` — ``request_id``, ``status_code``, ``total_duration_ms``,
+  ``stages`` (``[{name, duration_ms}, ...]``), ``stage_count``, optional ``error_type`` / ``error_detail``
+
+For ``StreamingResponse``, ``complete`` is emitted after the body finishes so ``total_duration_ms``
+includes the full SSE/stream lifetime.
+
+**Stages**: wrap work with ``with request_trace_stage("my.stage"):``; durations appear in
+``http.request.complete`` ``stages``.
+
+**Downstream logs**: ``log_summarize_line`` / ``log_ask_line`` add ``request_id`` when an HTTP
+trace is active.
+"""
 
 from __future__ import annotations
 

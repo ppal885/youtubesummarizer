@@ -1,1 +1,5 @@
-"""LangGraph-based workflows (see ``app.workflows.ask_graph`` for the copilot Q&A graph)."""
+"""LangGraph-based workflows.
+
+Stage implementations: :mod:`app.workflows.ask_pipeline`.
+Graph wiring: :mod:`app.workflows.ask_graph`.
+"""
